@@ -36,6 +36,7 @@ const tourSchema = mongoose.Schema({
     type:Number,
     validate:{
       validator:function(val){
+        //this only poin current document on new doc creation
      return this.price>val 
     },
     message:'Discount price ({VALUE}) should be below than regular price '
@@ -121,3 +122,7 @@ const tourSchema = mongoose.Schema({
   })
 const Tour = mongoose.model('Tour', tourSchema);
 module.exports = Tour;
+
+//notes  from section 8 last part
+// 1=>we can also use  third patry validtor for check eamil and password also only string or number:npm i validator 
+//1=> double back slash /find/ is use to targeting all types of find query

@@ -1,5 +1,8 @@
 const Tour = require('./../models/tourModel');
-const ApiFeatures=require('../utils/apiFeatures')
+const ApiFeatures=require('../utils/apiFeatures');
+const AppError = require('../utils/appError');
+const catchAsync=require('../utils/catchAsync');
+const { isValidObjectId } = require('mongoose');
 
 ////data arrray ///////
 
@@ -17,7 +20,7 @@ const ApiFeatures=require('../utils/apiFeatures')
 //   next();
 // };
 //middleware for top tours
-
+console.log('HEERE')
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
   req.query.sort = '-ratingsAverage,price';
@@ -27,8 +30,10 @@ exports.aliasTopTours = (req, res, next) => {
 
 //class for Api features
 
-exports.getAllTours = async (req, res) => {
-  try {
+
+
+exports.getAllTours = catchAsync(async (req, res ,next) => {
+
     console.log(req.query, 'first call');
     //1A  filtering
     // const queryObj = { ...req.query };
@@ -90,36 +95,23 @@ exports.getAllTours = async (req, res) => {
         tour,
       },
     });
-  } catch (error) {
-    console.log(error)
-    res.status(400).json({
-      status: 'fail',
-      message: error,
-    });
-  }
-};
+
+});
 
 ////Post Request Example for creating new obbject in array ////
-exports.createTour = async (req, res) => {
+exports.createTour = catchAsync( async (req, res,next) => {
   console.log(req.body);
   // const newTour = new Tour ({})
   // newTour.save() ////1st way for saving data
 
-  try {
     const newTour = await Tour.create(req.body);
     res.status(201).json({
       status: 'success',
       data: {
-        tour: newTour,
+        tour: newTour,ui
       },
     });
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data sent from User',
-      error: error,
-    });
-  }
+ 
 
   // const newId = tour[tour.length - 1].id + 1;
   // const newTour = Object.assign({ id: newId }, req.body);
@@ -136,41 +128,42 @@ exports.createTour = async (req, res) => {
   //     });
   //   },
   // );
-};
+});
 
 ///respondig parameters params and respond particular id data /////
-exports.getTour = async (req, res) => {
-  try {
+exports.getTour = catchAsync( async (req, res,next) => {
+
+  if(!isValidObjectId(req.params.id)){
+    return next(new AppError('No tour found whith that id',404))
+  }
+
     const tour = await Tour.findById(req.params.id);
+    if(!tour){
+      return next(new AppError('No tour found whith that id',404))
+    }
     res.status(200).json({
       status: 'success',
       tour,
     });
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: error,
-    });
-  }
+ 
   // const tours = tour.find((el) => el.id === id);
   // res.status(200).json({ ststus: 'success', tours });
-};
+});
 
 ///using patch api method for updating perticular object data/////
-exports.updateTour = async (req, res) => {
-  try {
+exports.updateTour =  catchAsync( async (req, res,next) => {
+ 
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
+    if (!tour){
+      return next(new AppError('NO id found ,404'))
+    }
     res
       .status(200)
       .json({ status: 'success', tour, message: 'Tour updated successfully' });
-  } catch (error) {
-    res
-      .status(404)
-      .json({ status: 'error', error, message: 'Internal server error' });
-  }
+ 
 
   // const updatedTourIndex = tour.findIndex((tours) => tours.id === id);
   // if (updatedTourIndex !== -1) {
@@ -186,16 +179,15 @@ exports.updateTour = async (req, res) => {
   //     .status(500)
   //     .json({ status: 'error', message: 'Internal server error' });
   // }
-};
+});
 
 ///////using delete method for delete something in  the data ////
 
-exports.deletetour = async (req, res) => {
-  try {
+exports.deletetour =  catchAsync(async (req, res,next) => {
+
     await Tour.findByIdAndDelete(req.params.id);
+    
     res.status(204).json({ status: 'success', data: null });
-  } catch (error) {
-    // tour.filter((tours) => tours.id !== id);
-    res.status(404).json({ status: 'fail', error: error });
-  }
-};
+ 
+
+});
