@@ -158,7 +158,7 @@ exports.updateTour =  catchAsync( async (req, res,next) => {
       runValidators: true,
     });
     if (!tour){
-      return next(new AppError('NO id found ,404'))
+      return next(new AppError('No id found ,404'))
     }
     res
       .status(200)
